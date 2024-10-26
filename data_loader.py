@@ -7,8 +7,11 @@ from config.config import DataLoader, Variables
 
 
 def prepare_customer_df(df_customers):
-    # Replace the word None with NA
-    df_customers['fashion_news_frequency'] = df_customers['fashion_news_frequency'].replace({'None': None})
+    # Replace the NAs, because Tensorflow does not support NAs
+    df_customers['FN'] = df_customers['FN'].fillna(0.0)
+    df_customers['Active'] = df_customers['Active'].fillna(0.0)
+    df_customers['club_member_status'] = df_customers['club_member_status'].fillna('None')
+    df_customers['fashion_news_frequency'] = df_customers['fashion_news_frequency'].fillna('None')
 
     # Impude the mssing ages with the mean age and make the age variable to an age range
     df_customers['age'] = df_customers['age'].mean()
@@ -28,9 +31,9 @@ def load_data() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     customers_path = './data/parquet/df_customers.parquet'
     transactions_path = './data/parquet/df_transactions.parquet'
     
-    pickeled_articles_path = './data/pickeled/df_train.p'
+    pickeled_test_path = './data/pickeled/df_train.p'
     pickeled_train_path = './data/pickeled/df_test.p'
-    pickeled_test_path = './data/pickeled/df_articles.p'
+    pickeled_articles_path = './data/pickeled/df_articles.p'
     
     # Check if the files have already been pickeled, to speed up time
     if os.path.exists(pickeled_train_path) and os.path.exists(pickeled_test_path) and os.path.exists(pickeled_articles_path):
