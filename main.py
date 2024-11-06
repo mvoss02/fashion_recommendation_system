@@ -1,21 +1,40 @@
-from data_loader import load_data
+from modules.data_loader import load_data
 import time
+from modules.preprocess_data import preprocess
+from modules.train import run_training
+from config.config import Config
+import pickle
 
 def run_all():
     # Start the timer
     start_time = time.time()
     
-    # Load the data
+    # Load/Extract the data
     print('Loading the data...')
-    df_train, df_test, df_article = load_data()
+    train_df, test_df, article_df = load_data()
     
     # Calculate the time taken and print it
     end_time = time.time()
     elapsed_time = end_time - start_time
     print(f'Done loading the data. Time taken: {elapsed_time:.2f} seconds!')
     
-    df_train.head(5)
+    # Preprocess the data to a TF Dataset
+    print('Preprocessing the data...')
+
+    preprocessed_hm_data = preprocess(train_df, test_df, article_df, batch_size=Config.batch_size)
+    
+    # Calculate the time taken and print it
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f'Done pre-processing the data. Time taken: {elapsed_time:.2f} seconds!')
+
+    # Train
+    print('Starting to train the model...')
+    return run_training(preprocessed_hm_data)
 
 
 if __name__ == '__main__':
-    run_all()
+    history = run_all()
+    results = history.history
+    
+    pickle.dump(results, open('./data/results/final_results.p', 'wb'))
