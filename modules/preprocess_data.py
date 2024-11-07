@@ -12,13 +12,15 @@ class PreprocessedData:
                  test_ds: tf.data.Dataset,
                  nb_test_obs: int,
                  lookups: Dict[str, tf.keras.layers.StringLookup],
-                 all_articles: Dict[str, tf.Tensor]):
+                 all_articles: Dict[str, tf.Tensor],
+                 article_ds: tf.data.Dataset):
         self.train_ds = train_ds
         self.nb_train_obs = nb_train_obs
         self.test_ds = test_ds
         self.nb_test_obs = nb_test_obs
         self.lookups = lookups
         self.all_articles = all_articles
+        self.article_ds = article_ds
 
     def perform_lookups(self, inputs: Dict[str, tf.Tensor],
                     lookups: Dict[str, tf.keras.layers]) -> Dict[str, tf.Tensor]:
@@ -31,10 +33,8 @@ class PreprocessedData:
             unique_values = train_df[var].unique()
             
             if var in Variables.CUSTOMER_VARIABLES_NUM:
-                print('Int:', var)
                 lookups[var] = tf.keras.layers.IntegerLookup(vocabulary=unique_values)
             else:
-                print('String:', var)
                 lookups[var] = tf.keras.layers.StringLookup(vocabulary=unique_values)
                 
         return lookups
@@ -73,7 +73,8 @@ def preprocess(train_df, test_df, article_df, batch_size) -> PreprocessedData:
         test_ds=None,   # Placeholder, will be replaced later
         nb_test_obs=nb_test_obs,
         lookups=None,   # Placeholder, will be replaced later
-        all_articles=None  # Placeholder, will be replaced later
+        all_articles=None,  # Placeholder, will be replaced later
+        article_ds=None
     )
     
     lookups = preprocessed_data_instance.build_lookups(train_df)
@@ -105,7 +106,8 @@ def preprocess(train_df, test_df, article_df, batch_size) -> PreprocessedData:
     article_ds = tf.data.Dataset.from_tensor_slices(dict(train_article_df)) \
                                 .batch(len(train_article_df)) \
                                 .map(lambda inputs: preprocessed_data_instance.perform_lookups(inputs, article_lookups))
-    all_articles = next(iter(article_ds))
+    all_articles = article_ds.unbatch()
+    #all_articles = next(iter(article_ds))
     
     print('Done generating the article data...')
 
@@ -114,5 +116,6 @@ def preprocess(train_df, test_df, article_df, batch_size) -> PreprocessedData:
     preprocessed_data_instance.test_ds = test_ds
     preprocessed_data_instance.lookups = lookups
     preprocessed_data_instance.all_articles = all_articles
+    preprocessed_data_instance.article_ds = article_ds
 
     return preprocessed_data_instance

@@ -1,12 +1,13 @@
 import tensorflow as tf
 from config.config import Variables, Config
 from modules.preprocess_data import PreprocessedData
-from modules.single_tower_model import SingleTowerModel
+from modules.tower_model import TowerModel
 from modules.recommendation_model import RecommendationModel
 
 
 def get_callbacks():
-    return [tf.keras.callbacks.TensorBoard(log_dir='./logs', update_freq=100), tf.keras.callbacks.EarlyStopping(
+    return [tf.keras.callbacks.TensorBoard(log_dir='./logs', update_freq=100), 
+            tf.keras.callbacks.EarlyStopping(
                 monitor='val_loss',  
                 patience=1,          
                 min_delta=0.1,
@@ -15,9 +16,9 @@ def get_callbacks():
 
 def run_training(data: PreprocessedData):
     article_lookups = {key: lkp for key, lkp in data.lookups.items() if key in Variables.ARTICLE_VARIABLES}
-    article_model = SingleTowerModel(article_lookups, Config.embedding_dimension)
+    article_model = TowerModel(article_lookups, Config.embedding_dimension)
     customer_lookups = {key: lkp for key, lkp in data.lookups.items() if key in Variables.ALL_CUSTOMER_VARIABLES}
-    customer_model = SingleTowerModel(customer_lookups, Config.embedding_dimension)
+    customer_model = TowerModel(customer_lookups, Config.embedding_dimension)
 
     model = RecommendationModel(customer_model, article_model, data)
     model.compile(optimizer=tf.keras.optimizers.Adagrad(learning_rate=Config.learning_rate), run_eagerly=True)
