@@ -1,0 +1,4 @@
+numpy==2.1.3
+pandas==2.2.3
+tensorflow==2.15.0
+tensorflow_recommenders==0.7.3

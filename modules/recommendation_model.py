@@ -15,14 +15,14 @@ class RecommendationModel(tfrs.models.Model):
         self.candidate_model =  candidate_model
         
         # Map each batch to embeddings using the candidate model
-        candidate_data = data.article_ds.batch(128)
-        candidate_data = candidate_data.map(self.candidate_model).cache().prefetch(tf.data.AUTOTUNE)
+        #candidate_data = data.article_ds.batch(128)
+        candidate_data = data.article_ds.map(self.candidate_model).cache().prefetch(tf.data.AUTOTUNE)
             
         self.retrieval_task: tf.keras.layers.Layer = tfrs.tasks.Retrieval(
-            # metrics=tfrs.metrics.FactorizedTopK(
-            #     candidates=candidate_data, 
-            #     ks=(12,),
-            # ),
+            metrics=tfrs.metrics.FactorizedTopK(
+                candidates=candidate_data, 
+                ks=(12,),
+            ),
             # num_hard_negatives=30,
         )
 
